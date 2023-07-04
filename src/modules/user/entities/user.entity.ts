@@ -1,19 +1,26 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BaseEntity,
+  BeforeInsert,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import * as bcrypt from 'bcryptjs';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
   CUSTOMER = 'CUSTOMER',
 }
 
-@Entity('user')
+@Entity({ name: 'users' })
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn({ type: 'int' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar' })
   name: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   email: string;
 
   @Column({ type: 'varchar' })
@@ -40,4 +47,9 @@ export class User extends BaseEntity {
 
   @Column({ type: 'array' })
   refreshToken: Array<string>;
+
+  @BeforeInsert()
+  async hashPassword(password: string): Promise<void> {
+    this.password = await bcrypt.hash(password || this.password, 10);
+  }
 }
