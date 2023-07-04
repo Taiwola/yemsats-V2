@@ -31,7 +31,8 @@ export class UserService {
         password: hashPwd,
       });
 
-      return newUser;
+      const savedUser = await this.userRepository.save(newUser);
+      return savedUser;
     } catch (error) {
       console.log(error);
       throw new HttpException(

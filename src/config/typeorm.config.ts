@@ -9,5 +9,5 @@ export const typeormConfig: TypeOrmModuleOptions = {
   database: 'yemsay-real-estate',
   entities: [],
   synchronize: true,
-  logging: true,
+  autoLoadEntities: true,
 };

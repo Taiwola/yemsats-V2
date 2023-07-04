@@ -35,9 +35,9 @@ export class User {
   @Column({ type: 'varchar' })
   location: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'bigint' })
   phone_no: number;
 
-  @Column({ type: 'array' })
-  refreshToken: Array<string>;
+  @Column({ type: 'varchar', array: true, nullable: true })
+  refreshToken: string[];
 }
