@@ -43,8 +43,49 @@ export class UserService {
     return 'This action adds a new user';
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async getUser(email: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { email: email },
+      });
+      return user;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async comparePassword(email: string, password: string) {
+    try {
+      const userExist = this.userRepository.findOne({
+        where: { email: email },
+      });
+      if (!userExist) {
+        throw new Error('user does not exist');
+      }
+
+      const cmpPwd = await bcrypt.compare(password, (await userExist).password);
+
+      if (!cmpPwd) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Internal server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findAll() {
+    const user = await this.userRepository.find();
+    return user;
   }
 
   findOne(id: number) {

@@ -6,10 +6,17 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { Response } from 'express';
+
+export interface SignInInterface {
+  password: string;
+  email: string;
+}
 
 @Controller('auth')
 export class AuthController {
@@ -18,6 +25,12 @@ export class AuthController {
   @Post('create')
   create(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.create(createAuthDto);
+  }
+
+  @Post('signin')
+  async signin(@Body() signinInterface: SignInInterface, @Res() res: Response) {
+    console.log('auth controller: ', signinInterface.password);
+    return await this.authService.signInUser(signinInterface, res);
   }
 
   @Get()
