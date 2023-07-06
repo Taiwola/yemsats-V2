@@ -40,7 +40,6 @@ export class UserService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-    return 'This action adds a new user';
   }
 
   async getUser(email: string) {
@@ -60,14 +59,14 @@ export class UserService {
 
   async comparePassword(email: string, password: string) {
     try {
-      const userExist = this.userRepository.findOne({
+      const userExist = await this.userRepository.findOne({
         where: { email: email },
       });
       if (!userExist) {
         throw new Error('user does not exist');
       }
 
-      const cmpPwd = await bcrypt.compare(password, (await userExist).password);
+      const cmpPwd = await bcrypt.compare(password, userExist.password);
 
       if (!cmpPwd) {
         return false;
@@ -78,6 +77,31 @@ export class UserService {
       console.log(error);
       throw new HttpException(
         'Internal server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updatePassword(hashPwd: string, userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+    }
+    try {
+      await this.userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ password: hashPwd })
+        .where('id = :id', { id: userId })
+        .execute();
+      return true;
+    } catch (error) {
+      console.error('Error updating password:', error);
+      throw new HttpException(
+        'Error updating password',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
