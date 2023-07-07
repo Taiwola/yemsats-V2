@@ -7,6 +7,9 @@ import { typeormConfigAsync } from './config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailerModule as NestMailerModule } from '@nestjs-modules/mailer';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConfig } from './config/jwt.config';
+import { mailerConfig } from './config/mailer.config';
 
 @Module({
   imports: [
@@ -14,19 +17,8 @@ import { MailerModule as NestMailerModule } from '@nestjs-modules/mailer';
     UserModule,
     TypeOrmModule.forRootAsync(typeormConfigAsync),
     AuthModule,
-    NestMailerModule.forRoot({
-      transport: {
-        service: 'gmail',
-        auth: {
-          type: 'OAuth2',
-          user: process.env.AUTH_USER,
-          clientId: process.env.AUTH_CLIENT_ID,
-          clientSecret: process.env.AUTH_CLIENT_SECRET,
-          refreshToken: process.env.AUTH_REFRESH_TOKEN,
-          accessToken: process.env.AUTH_ACCESS_TOKEN,
-        },
-      },
-    }),
+    NestMailerModule.forRoot(mailerConfig),
+    JwtModule.registerAsync(jwtConfig),
   ],
   controllers: [AppController],
   providers: [AppService],

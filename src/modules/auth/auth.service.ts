@@ -2,17 +2,13 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { UserService } from '../user/user.service';
-import {
-  createToken,
-  refreshToken,
-  forgotPasswordToken,
-  JwtPayLoad,
-} from '../../common/token/jwt.token';
-import { Response } from 'express';
 import * as bcrypt from 'bcryptjs';
 import { MailerService } from '../mail/mail.service';
 import * as jwt from 'jsonwebtoken';
+import { Request, Response } from 'express';
+import { JwtService } from '@nestjs/jwt';
 
+// interfaces
 export interface SignInInterface {
   password: string;
   email: string;
@@ -22,12 +18,44 @@ export interface ForgotPasswordInterface {
   email: string;
 }
 
+export interface JwtPayLoad {
+  email: string;
+  exp: number;
+  iat: number;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private mailService: MailerService,
+    private jwtService: JwtService,
   ) {}
+  // private methods
+  private async generateToken(email: string, id: string) {
+    const payload = { id, email };
+    const token = await this.jwtService.signAsync(payload);
+    return token;
+  }
+
+  private async generateRefreshToken(email: string, id: string) {
+    const payload = { id, email };
+    const token = await this.jwtService.signAsync(payload);
+    return token;
+  }
+
+  private async generateForgottenPasswordToken(email: string) {
+    const payload = { email }; // Wrap the email string in an object
+    const expiresIn = '1h'; // Use a string to represent the expiration time (1 hour)
+
+    const token = jwt.sign(payload, process.env.JWT_FORGOT_PASSWORD, {
+      expiresIn,
+    });
+
+    return token;
+  }
+
+  // public services
   async signup(createAuthDto: CreateAuthDto) {
     return await this.userService.create(createAuthDto);
   }
@@ -49,9 +77,12 @@ export class AuthService {
     }
 
     try {
-      const token = await createToken(userExist.id, userExist.email);
+      const token = await this.generateToken(userExist.id, userExist.email);
 
-      const refresh = await refreshToken(userExist.id, userExist.email);
+      const refresh = await this.generateRefreshToken(
+        userExist.id,
+        userExist.email,
+      );
 
       res.cookie('jwt', refresh, {
         httpOnly: true,
@@ -83,7 +114,7 @@ export class AuthService {
       throw new HttpException('invalid credentials', HttpStatus.BAD_REQUEST);
     }
 
-    const token = await forgotPasswordToken(email.email);
+    const token = await this.generateForgottenPasswordToken(email.email);
 
     if (!token) {
       throw new HttpException(
@@ -144,19 +175,14 @@ export class AuthService {
     }
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async logUserOut(req: Request, res: Response) {
+    const token = req.cookies.jwt;
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    if (!token) {
+      return { message: 'user logged out' };
+    }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    res.clearCookie('jwt', { httpOnly: true });
+    res.status(200).json({ message: 'user logged out' });
   }
 }

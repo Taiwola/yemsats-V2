@@ -112,15 +112,55 @@ export class UserService {
     return user;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: id },
+    });
+
+    if (!user) {
+      throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+    }
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({ where: { id: id } });
+
+    if (!user) {
+      throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      const updateUser = await this.userRepository.update(
+        { id: id },
+        { ...updateUserDto },
+      );
+      return updateUser;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'error in updating user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    const user = await this.userRepository.findOne({ where: { id: id } });
+
+    if (!user) {
+      throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      await this.userRepository.remove(user);
+      return { message: 'user deleted' };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
