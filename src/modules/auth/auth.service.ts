@@ -1,28 +1,22 @@
+// BUILT-IN IMPORTS
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Request, Response } from 'express';
+// IMPORT DTO
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+// SERVICES
 import { UserService } from '../user/user.service';
-import * as bcrypt from 'bcryptjs';
 import { MailerService } from '../mail/mail.service';
-import * as jwt from 'jsonwebtoken';
-import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
-
-// interfaces
-export interface SignInInterface {
-  password: string;
-  email: string;
-}
-
-export interface ForgotPasswordInterface {
-  email: string;
-}
-
-export interface JwtPayLoad {
-  email: string;
-  exp: number;
-  iat: number;
-}
+// CUSTOM IMPORTS
+import * as jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcryptjs';
+// IMPORT INTERFACES
+import {
+  SignInInterface,
+  ForgotPasswordInterface,
+  JwtPayLoad,
+} from './interfaces/auth.interfaces';
 
 @Injectable()
 export class AuthService {
