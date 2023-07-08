@@ -1,5 +1,11 @@
 // BUILT-IN IMPORTS
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 // IMPORT DTO
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -25,7 +31,7 @@ export class AuthService {
     private mailService: MailerService,
     private jwtService: JwtService,
   ) {}
-  // private methods
+  // private methods or utility functions
   private async generateToken(email: string, id: string) {
     const payload = { id, email };
     const token = await this.jwtService.signAsync(payload);
@@ -36,6 +42,19 @@ export class AuthService {
     const payload = { id, email };
     const token = await this.jwtService.signAsync(payload);
     return token;
+  }
+
+  private async verifyToken(token: string) {
+    try {
+      const decodedPayload = (await this.jwtService.verifyAsync(
+        token,
+      )) as JwtPayLoad;
+      const userId = decodedPayload.id;
+      return userId;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 
   private async generateForgottenPasswordToken(email: string) {
@@ -49,7 +68,7 @@ export class AuthService {
     return token;
   }
 
-  // public services
+  // public methods
   async signup(createAuthDto: CreateAuthDto) {
     return await this.userService.create(createAuthDto);
   }
@@ -71,11 +90,11 @@ export class AuthService {
     }
 
     try {
-      const token = await this.generateToken(userExist.id, userExist.email);
+      const token = await this.generateToken(userExist.email, userExist.id);
 
       const refresh = await this.generateRefreshToken(
-        userExist.id,
         userExist.email,
+        userExist.id,
       );
 
       res.cookie('jwt', refresh, {
@@ -167,6 +186,41 @@ export class AuthService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async refresh(req: Request, res: Response) {
+    const token = req.cookies.jwt;
+
+    if (!token) {
+      throw new HttpException(
+        { message: 'user not logged in' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const userId = await this.verifyToken(token);
+
+    if (!userId) {
+      throw new UnauthorizedException(); // TODO add error handling for invalid tokens and expired ones?
+    }
+
+    const user = await this.userService.getUserById(userId);
+
+    if (!user) {
+      throw new HttpException(
+        { message: 'user does not exist' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const generateNewToken = await this.generateToken(user.email, user.id);
+
+    if (!generateNewToken) {
+      console.error(`Failed to re-authenticate ${user}`);
+      throw new InternalServerErrorException();
+    }
+
+    res.status(200).json({ access_token: generateNewToken });
   }
 
   async logUserOut(req: Request, res: Response) {

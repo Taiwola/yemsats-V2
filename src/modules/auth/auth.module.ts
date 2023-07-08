@@ -6,6 +6,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from '../mail/mail.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConfig } from '../../config/jwt.config';
+import { UserInterceptor } from './interceptors/interceptors';
+import { AuthGuard } from './gaurds/auth.gaurd';
+import { RolesGaurd } from './gaurds/roles.gaurd';
 
 @Module({
   imports: [
@@ -15,6 +18,7 @@ import { jwtConfig } from '../../config/jwt.config';
     JwtModule.registerAsync(jwtConfig),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, UserInterceptor, AuthGuard, RolesGaurd],
+  exports: [UserInterceptor, AuthGuard, RolesGaurd],
 })
 export class AuthModule {}

@@ -9,6 +9,14 @@ export interface ForgotPasswordInterface {
 
 export interface JwtPayLoad {
   email: string;
+  id: string;
+  exp: number;
+  iat: number;
+}
+
+export interface UserReq {
+  email: string;
+  id: string;
   exp: number;
   iat: number;
 }

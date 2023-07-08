@@ -1,27 +1,25 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   Res,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { Response, Request } from 'express';
-
-export interface SignInInterface {
-  password: string;
-  email: string;
-}
-
-export interface ForgotPasswordInterface {
-  email: string;
-}
+import {
+  SignInInterface,
+  ForgotPasswordInterface,
+} from './interfaces/auth.interfaces';
+// GUARDS
+import { AuthGuard } from './gaurds/auth.gaurd';
+import { RolesGaurd } from './gaurds/roles.gaurd';
+import { Roles } from './decorators/user.roles';
+import { UserRole } from '../user/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -50,11 +48,34 @@ export class AuthController {
     this.authService.resetPassword(id, body);
   }
 
+  @Post('refresh')
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return await this.authService.refresh(req, res);
+  }
+
   @Post('logout')
   async logOutUser(
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
   ) {
     return await this.authService.logUserOut(req, res);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('test/guard')
+  async testRoute() {
+    console.log('I am protected');
+    return true;
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
+  @UseGuards(RolesGaurd)
+  @Post('test/role')
+  role(@Req() req: Request) {
+    console.log('this route is for admin');
+    return req.user;
   }
 }

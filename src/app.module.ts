@@ -10,6 +10,10 @@ import { MailerModule as NestMailerModule } from '@nestjs-modules/mailer';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConfig } from './config/jwt.config';
 import { mailerConfig } from './config/mailer.config';
+import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { UserInterceptor } from './modules/auth/interceptors/interceptors';
+import { AuthGuard } from './modules/auth/gaurds/auth.gaurd';
+import { RolesGaurd } from './modules/auth/gaurds/roles.gaurd';
 
 @Module({
   imports: [
@@ -21,6 +25,16 @@ import { mailerConfig } from './config/mailer.config';
     JwtModule.registerAsync(jwtConfig),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: UserInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}

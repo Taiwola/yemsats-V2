@@ -57,6 +57,21 @@ export class UserService {
     }
   }
 
+  async getUserById(id: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: id },
+      });
+      return user;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async comparePassword(email: string, password: string) {
     try {
       const userExist = await this.userRepository.findOne({
