@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../../user/user.service';
-import { Observable } from 'rxjs';
 import { JwtPayLoad } from '../interfaces/auth.interfaces';
 
 @Injectable()

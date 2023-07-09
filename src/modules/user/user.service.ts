@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
+import { Request } from 'express';
+import { UserRole } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -12,6 +14,7 @@ export class UserService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
+  // methods
   async create(createUserDto: CreateUserDto) {
     const { email, password } = createUserDto;
 
@@ -33,6 +36,42 @@ export class UserService {
 
       const savedUser = await this.userRepository.save(newUser);
       return savedUser;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Internal server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async createAdmin(createAdmin: CreateUserDto) {
+    // check admin exists or not in database and then add it to the db with default credentials
+    const findUser = await this.getUser(createAdmin.email);
+
+    if (findUser) {
+      throw new HttpException(
+        {
+          message:
+            'user already exist, need to make a request to be made an admin',
+        },
+        HttpStatus.CONFLICT,
+      );
+    }
+    const hashedPassword = await bcrypt.hash(createAdmin.password, 10);
+
+    try {
+      const user = this.userRepository.create({
+        ...createAdmin,
+        password: hashedPassword,
+        roles: UserRole.ADMIN,
+      });
+
+      const savedUser = await this.userRepository.save(user);
+
+      const { password, ...result } = savedUser;
+
+      return result;
     } catch (error) {
       console.log(error);
       throw new HttpException(
@@ -122,6 +161,7 @@ export class UserService {
     }
   }
 
+  // user methods
   async findAll() {
     const user = await this.userRepository.find();
     return user;
@@ -138,11 +178,18 @@ export class UserService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, req: Request) {
     const user = await this.userRepository.findOne({ where: { id: id } });
 
     if (!user) {
       throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    if (req.user.id !== user.id) {
+      throw new HttpException(
+        { message: 'only owner of this account can update this account' },
+        HttpStatus.CONFLICT,
+      );
     }
 
     try {
@@ -150,7 +197,10 @@ export class UserService {
         { id: id },
         { ...updateUserDto },
       );
-      return updateUser;
+      if (updateUser.affected > 0) {
+        const newUser = await this.getUserById(id);
+        return newUser;
+      }
     } catch (error) {
       console.log(error);
       throw new HttpException(
@@ -160,11 +210,60 @@ export class UserService {
     }
   }
 
-  async remove(id: string) {
+  async updateUserToAdmin(id: string, req: Request) {
+    const userId = await this.getUserById(id);
+
+    if (!userId) {
+      throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    const reqUserId = req.user.id;
+
+    const findUser = await this.getUserById(reqUserId);
+
+    if (!findUser) {
+      throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    // check for admin role and permission to make changes on other users data except their own details
+    if (userId.roles === UserRole.ADMIN) {
+      throw new HttpException('user already an admin', HttpStatus.CONFLICT);
+    }
+
+    try {
+      const updateUser = await this.userRepository.update(
+        { id: id },
+        { roles: UserRole.ADMIN },
+      );
+      if (updateUser.affected > 0) {
+        const user = await this.getUserById(id);
+        return user;
+      }
+    } catch (error) {
+      console.log(`Error updating ${id} as Admin`, error);
+      throw new HttpException(
+        'internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async remove(id: string, req: Request) {
     const user = await this.userRepository.findOne({ where: { id: id } });
 
     if (!user) {
       throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    const userId = req.user.id;
+
+    const findUser = await this.getUserById(userId);
+
+    if (findUser.id !== user.id && findUser.roles !== 'ADMIN') {
+      throw new HttpException(
+        'user is not authorized',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     try {

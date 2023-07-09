@@ -73,6 +73,10 @@ export class AuthService {
     return await this.userService.create(createAuthDto);
   }
 
+  async signupAdmin(createAdmin: CreateAuthDto) {
+    return await this.userService.createAdmin(createAdmin);
+  }
+
   async signInUser(signin: SignInInterface, res: Response) {
     const userExist = await this.userService.getUser(signin.email);
 

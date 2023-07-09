@@ -30,6 +30,11 @@ export class AuthController {
     return this.authService.signup(createAuthDto);
   }
 
+  @Post('create-admin')
+  signupAdmin(@Body() createAdmin: CreateAuthDto) {
+    return this.authService.signupAdmin(createAdmin);
+  }
+
   @Post('signin')
   async signin(
     @Body() signinInterface: SignInInterface,

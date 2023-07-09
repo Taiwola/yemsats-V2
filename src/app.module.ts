@@ -13,7 +13,6 @@ import { mailerConfig } from './config/mailer.config';
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { UserInterceptor } from './modules/auth/interceptors/interceptors';
 import { AuthGuard } from './modules/auth/gaurds/auth.gaurd';
-import { RolesGaurd } from './modules/auth/gaurds/roles.gaurd';
 
 @Module({
   imports: [
