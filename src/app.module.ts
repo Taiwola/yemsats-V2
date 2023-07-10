@@ -15,6 +15,8 @@ import { UserInterceptor } from './modules/auth/interceptors/interceptors';
 import { AuthGuard } from './modules/auth/gaurds/auth.gaurd';
 import { UploadModule } from './modules/upload/upload.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { PropertyModule } from './modules/property/property.module';
+import { CommentModule } from './modules/comment/comment.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { MulterModule } from '@nestjs/platform-express';
         dest: './uploads',
       }),
     }),
+    PropertyModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [

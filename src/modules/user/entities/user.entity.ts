@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Property } from '../../property/entities/property.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -40,4 +41,7 @@ export class User {
 
   @Column({ type: 'varchar', array: true, nullable: true })
   refreshToken: string[];
+
+  @OneToMany(() => Property, (property) => property.user)
+  properties: Property[];
 }
