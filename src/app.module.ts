@@ -13,6 +13,8 @@ import { mailerConfig } from './config/mailer.config';
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { UserInterceptor } from './modules/auth/interceptors/interceptors';
 import { AuthGuard } from './modules/auth/gaurds/auth.gaurd';
+import { UploadModule } from './modules/upload/upload.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -22,6 +24,12 @@ import { AuthGuard } from './modules/auth/gaurds/auth.gaurd';
     AuthModule,
     NestMailerModule.forRoot(mailerConfig),
     JwtModule.registerAsync(jwtConfig),
+    UploadModule,
+    MulterModule.registerAsync({
+      useFactory: () => ({
+        dest: './uploads',
+      }),
+    }),
   ],
   controllers: [AppController],
   providers: [

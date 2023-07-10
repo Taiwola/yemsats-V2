@@ -7,7 +7,9 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Request } from 'express';
 import { UserRole } from './entities/user.entity';
+import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 
+type CloudinaryType = UploadApiErrorResponse | UploadApiResponse;
 @Injectable()
 export class UserService {
   constructor(
@@ -158,6 +160,19 @@ export class UserService {
         'Error updating password',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async updateImg(imageUrl: CloudinaryType | string, userId: string) {
+    const updateUser = await this.userRepository.update(
+      { id: userId },
+      { profileImg: imageUrl.toString() },
+    );
+
+    if (updateUser.affected > 0) {
+      const newUser = await this.getUserById(userId);
+      const { password, ...result } = newUser;
+      return result;
     }
   }
 
