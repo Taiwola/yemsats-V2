@@ -50,6 +50,7 @@ export class PropertyService {
   ) {
     const findProperty = await this.propertyRespository.findOne({
       where: { id: id },
+      relations: ['user'],
     });
 
     if (!findProperty) {
@@ -80,7 +81,13 @@ export class PropertyService {
         });
         return property;
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Failed to update property',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async getAllProperty() {
