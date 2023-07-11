@@ -19,6 +19,9 @@ export class Property {
   id: string;
 
   @Column({ type: 'text', nullable: true })
+  name: string | null;
+
+  @Column({ type: 'text', nullable: true })
   description: string | null;
 
   @Column({ type: 'text' })
