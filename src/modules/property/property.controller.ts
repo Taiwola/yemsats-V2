@@ -17,6 +17,8 @@ import { Request } from 'express';
 import { Roles } from '../auth/decorators/user.roles';
 import { RolesGaurd } from '../auth/gaurds/roles.gaurd';
 import { UserRole } from '../user/entities/user.entity';
+import { statusDto } from './dto/status.dto';
+import { features } from 'process';
 
 @Controller('property')
 export class PropertyController {
@@ -62,5 +64,48 @@ export class PropertyController {
   @Delete('delete/:id')
   async deleteProperty(@Param('id', ParseUUIDPipe) id: string) {
     return await this.propertyService.deleteProperty(id);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGaurd)
+  @Patch('status/:id')
+  async listProperty(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() status: statusDto,
+    @Req() req: Request,
+  ) {
+    return await this.propertyService.listProperties(id, status, req);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGaurd)
+  @Patch('sold/:id')
+  async soldProperty(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+  ) {
+    return await this.propertyService.soldProperty(id, req);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGaurd)
+  @Patch('features/:id')
+  async addFeatures(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() feature: string[],
+    @Req() req: Request,
+  ) {
+    return await this.propertyService.addFeatures(id, feature, req);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGaurd)
+  @Patch('tags/:id')
+  async addTags(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() tags: string[],
+    @Req() req: Request,
+  ) {
+    return await this.propertyService.addTags(id, tags, req);
   }
 }

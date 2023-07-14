@@ -15,5 +15,6 @@ import { Property } from './entities/property.entity';
   ],
   controllers: [PropertyController],
   providers: [PropertyService],
+  exports: [PropertyService],
 })
 export class PropertyModule {}

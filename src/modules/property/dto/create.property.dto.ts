@@ -4,7 +4,7 @@ import { PropertyType } from '../entities/property.entity';
 export class CreatePropertyDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  title: string;
 
   @IsString()
   @IsNotEmpty()
@@ -19,14 +19,4 @@ export class CreatePropertyDto {
 
   @IsNumber()
   price: number;
-
-  @IsString()
-  @IsNotEmpty()
-  landSize: string;
-
-  @IsNumber()
-  numberOfBathroom: number;
-
-  @IsNumber()
-  numberOfBedroom: number;
 }

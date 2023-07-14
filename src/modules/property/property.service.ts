@@ -3,7 +3,9 @@ import { UserService } from '../user/user.service';
 import { Request } from 'express';
 import { CreatePropertyDto } from './dto/create.property.dto';
 import { UpdatePropertyDto } from './dto/update.property';
-import { Property } from './entities/property.entity';
+import { statusDto } from './dto/status.dto';
+import { RatingDto } from './dto/rating.dto';
+import { Property, PropertyStatus } from './entities/property.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -15,6 +17,44 @@ export class PropertyService {
     private propertyRespository: Repository<Property>,
   ) {}
 
+  // methods
+  async findProperty(id: string) {
+    const findProperty = await this.propertyRespository.findOne({
+      where: { id: id },
+      relations: ['ADMIN'],
+    });
+    return findProperty;
+  }
+
+  async saveImg(imgUrl: string[], id: string) {
+    const property = await this.findProperty(id);
+    property.images = imgUrl;
+    try {
+      return this.propertyRespository.save(property);
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Failed to update the image property',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async saveVideo(videoUrl: string, id: string) {
+    const property = await this.findProperty(id);
+    property.video = videoUrl;
+    try {
+      return this.propertyRespository.save(property);
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Failed to update the image property',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // CRUD methods
   async addProperty(createProperty: CreatePropertyDto, req: Request) {
     const user = await this.userService.getUserById(req.user.id);
 
@@ -25,7 +65,10 @@ export class PropertyService {
     try {
       const saveProperty = this.propertyRespository.create({
         ...createProperty,
-        user: user,
+        ADMIN: user,
+        salesSuportName: user.name,
+        salesSuportNum: user.phone_no,
+        salesSupportAvatar: user.profileImg,
       });
 
       const savedProperty = await this.propertyRespository.save(saveProperty);
@@ -50,14 +93,14 @@ export class PropertyService {
   ) {
     const findProperty = await this.propertyRespository.findOne({
       where: { id: id },
-      relations: ['user'],
+      relations: ['ADMIN'],
     });
 
     if (!findProperty) {
       throw new HttpException('Property not found', HttpStatus.BAD_REQUEST);
     }
 
-    const userId = findProperty.user.id;
+    const userId = findProperty.ADMIN.id;
 
     const findUser = await this.userService.getUserById(userId);
 
@@ -126,5 +169,120 @@ export class PropertyService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  // properties method
+  async listProperties(id: string, status: statusDto, req: Request) {
+    const property = await this.findProperty(id);
+
+    if (!property) {
+      throw new HttpException(
+        'Property does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (req.user.id !== property.ADMIN.id) {
+      throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (status.status === PropertyStatus.Listed) {
+      property.status = status.status;
+    }
+
+    if (status.status === PropertyStatus.Unlisted) {
+      property.status = status.status;
+    }
+
+    return await this.propertyRespository.save(property);
+  }
+
+  async soldProperty(id: string, req: Request) {
+    const property = await this.findProperty(id);
+
+    if (!property) {
+      throw new HttpException(
+        'Property does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (req.user.id !== property.ADMIN.id) {
+      throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    property.status = PropertyStatus.Sold;
+
+    return await this.propertyRespository.save(property);
+  }
+
+  async addFeatures(id: string, feature: string[], req: Request) {
+    const property = await this.findProperty(id);
+
+    if (!property) {
+      throw new HttpException(
+        'Property does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (req.user.id !== property.ADMIN.id) {
+      throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    property.Feature = feature;
+
+    try {
+      return await this.propertyRespository.save(property);
+    } catch (error) {
+      console.log(`Error adding features ${error}`);
+      throw new HttpException(
+        'internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async addTags(id: string, tags: string[], req: Request) {
+    const property = await this.findProperty(id);
+
+    if (!property) {
+      throw new HttpException(
+        'Property does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (req.user.id !== property.ADMIN.id) {
+      throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    property.Tags = tags;
+
+    try {
+      return await this.propertyRespository.save(property);
+    } catch (error) {
+      console.log(`Error adding features ${error}`);
+      throw new HttpException(
+        'internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async rating(id: string, ratingDto: RatingDto) {
+    const property = await this.findProperty(id);
+
+    if (!property) {
+      throw new HttpException(
+        'Property does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    property.propertyRating = ratingDto.propertyRating;
+    property.locationRating = ratingDto.locationRating;
+    property.valueRating = ratingDto.valueRating;
+    property.supportRating = ratingDto.supportRating;
   }
 }

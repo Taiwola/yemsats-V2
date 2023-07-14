@@ -9,11 +9,14 @@ import {
   UploadedFiles,
   Req,
   UseGuards,
+  Param,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UploadService } from './upload.service';
 import {
   FileFieldsInterceptor,
   FileInterceptor,
+  FilesInterceptor,
 } from '@nestjs/platform-express';
 import { Express, Request } from 'express';
 import { diskStorage } from 'multer';
@@ -34,6 +37,18 @@ export class UploadController {
     @Req() req: Request,
   ) {
     return await this.uploadService.uploadProfileImgCloudinary(file, req);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
+  @UseGuards(RolesGaurd)
+  @UseInterceptors(FilesInterceptor('files'))
+  @Post('property/cloud/:id')
+  async handleMultipleUpload(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() files: Express.Multer.File[],
+    @Req() req: Request,
+  ) {
+    return await this.uploadService.uploadPropertyImg(id, files, req);
   }
 
   @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
@@ -62,12 +77,24 @@ export class UploadController {
     }),
   )
   @Post('profile-img/local')
-  async testUploadImg(
+  async UploadImg(
     @UploadedFile() file: Express.Multer.File,
     @Req() req: Request,
   ) {
     const filename = file.filename;
     return await this.uploadService.uploadProfileImgLocal(filename, req);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
+  @UseGuards(RolesGaurd)
+  @UseInterceptors(FileInterceptor('video'))
+  @Post('video/property/:id')
+  async uploadVideo(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request,
+  ) {
+    return await this.uploadService.uploadPropertyVideo(file, id, req);
   }
 
   @UseInterceptors(FileInterceptor('file'))

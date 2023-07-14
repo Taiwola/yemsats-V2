@@ -17,6 +17,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { PropertyModule } from './modules/property/property.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CommentModule } from './modules/comment/comment.module';
     }),
     PropertyModule,
     CommentModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [

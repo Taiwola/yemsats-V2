@@ -6,9 +6,15 @@ export class Comment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'varchar' })
+  email: string;
+
+  @Column({ type: 'varchar' })
+  name: string;
+
   @ManyToOne(() => Property, (property) => property.comments)
   propertyId: string;
 
-  @Column()
+  @Column({ type: 'text' })
   text: string;
 }

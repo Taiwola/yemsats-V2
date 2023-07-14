@@ -4,13 +4,21 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Comment } from '../../comment/entities/comment.entity';
 import { User } from '../../user/entities/user.entity';
 
 export enum PropertyType {
   LAND = 'LAND',
-  RESIDENTIAL = 'RESIDENTIAL',
+  HOUSE = 'HOUSE',
+}
+
+export enum PropertyStatus {
+  Sold = 'Sold',
+  Listed = 'Listed',
+  Unlisted = 'Unlisted',
 }
 
 @Entity()
@@ -19,7 +27,7 @@ export class Property {
   id: string;
 
   @Column({ type: 'text', nullable: true })
-  name: string | null;
+  title: string | null;
 
   @Column({ type: 'text', nullable: true })
   description: string | null;
@@ -35,11 +43,15 @@ export class Property {
 
   @Column({ type: 'integer', nullable: true })
   price: number | null;
-/**
+
+  @Column({ type: 'varchar', array: true, nullable: true })
+  Tags: string[];
+
+  @Column({ type: 'varchar', array: true, nullable: true })
+  Feature: string[];
+  /**
  * Tags are supposed to be dynamic and not fixed so intead of this have a features array where the admin
  * can speciy landSize instead
-  @Column({ type: 'text', nullable: true })
-  landSize: string | null;
 
   @Column({ type: 'integer', nullable: true })
   numberOfBathroom: number | null;
@@ -51,22 +63,23 @@ export class Property {
   comments: Comment[];
 
   @ManyToOne(() => User, (user) => user.properties)
-  user: User; // rename user to admin here so it will be ref as adminId in the db
+  ADMIN: User; // rename user to admin here so it will be ref as adminId in the db
 
-  /**
-   * This is not exactly intuitive because only one of these can be true at a time
-   * Have a property status instead where the user can update depending on the current
-   * status of the property
-  @Column({ type: 'boolean', default: false })
-  isSold: boolean;
+  @Column({ type: 'varchar', nullable: true })
+  salesSuportName: string | null;
 
-  @Column({ type: 'boolean', default: true })
-  listed: boolean;
+  @Column({ type: 'bigint', nullable: true })
+  salesSuportNum: number | null;
 
-  @Column({ type: 'boolean', default: false })
-  unlisted: boolean;
+  @Column({ type: 'varchar', nullable: true })
+  salesSupportAvatar: string | null;
 
-   */
+  @Column({
+    type: 'enum',
+    enum: PropertyStatus,
+    nullable: true,
+  })
+  status: PropertyStatus | null;
 
   @Column({ type: 'float', nullable: true })
   propertyRating: number | null;
@@ -86,12 +99,17 @@ export class Property {
   @Column('simple-array', { nullable: true })
   images: string[] | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   video: string | null;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedAt: Date;
 }
 
-
-// manytoone rel with admin 
+// manytoone rel with admin
 
 // title
 
@@ -121,7 +139,6 @@ export class Property {
 
 // timestamps
 
-
 // Entity reviews
 
 // many to one rel with property
@@ -143,8 +160,3 @@ export class Property {
 // reviewScore (the average of all above scores)
 
 //timestamps
-
-
-
-
-
