@@ -269,20 +269,4 @@ export class PropertyService {
       );
     }
   }
-
-  async rating(id: string, ratingDto: RatingDto) {
-    const property = await this.findProperty(id);
-
-    if (!property) {
-      throw new HttpException(
-        'Property does not exist',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    property.propertyRating = ratingDto.propertyRating;
-    property.locationRating = ratingDto.locationRating;
-    property.valueRating = ratingDto.valueRating;
-    property.supportRating = ratingDto.supportRating;
-  }
 }

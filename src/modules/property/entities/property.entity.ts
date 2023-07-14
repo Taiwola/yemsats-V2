@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Comment } from '../../comment/entities/comment.entity';
 import { User } from '../../user/entities/user.entity';
+import { Review } from '../../reviews/entities/review.entity';
 
 export enum PropertyType {
   LAND = 'LAND',
@@ -62,6 +63,9 @@ export class Property {
   @OneToMany(() => Comment, (comment) => comment.propertyId)
   comments: Comment[];
 
+  @OneToMany(() => Review, (review) => review.property)
+  reviews: Review[];
+
   @ManyToOne(() => User, (user) => user.properties)
   ADMIN: User; // rename user to admin here so it will be ref as adminId in the db
 
@@ -80,21 +84,6 @@ export class Property {
     nullable: true,
   })
   status: PropertyStatus | null;
-
-  @Column({ type: 'float', nullable: true })
-  propertyRating: number | null;
-
-  @Column({ type: 'float', nullable: true })
-  valueRating: number | null;
-
-  @Column({ type: 'float', nullable: true })
-  locationRating: number | null;
-
-  @Column({ type: 'float', nullable: true })
-  supportRating: number | null;
-
-  @Column({ type: 'float', nullable: true })
-  totalRating: number | null;
 
   @Column('simple-array', { nullable: true })
   images: string[] | null;
@@ -138,25 +127,3 @@ export class Property {
 //salesSupportAvatar
 
 // timestamps
-
-// Entity reviews
-
-// many to one rel with property
-
-// property (the score; min is 1, max is 5)
-
-//valueForMoney (the score; min is 1, max is 5)
-
-//location (the score; min is 1, max is 5)
-
-// support (the score; min is 1, max is 5)
-
-// name (name of reviewer)
-
-// email
-
-// review (the review itself)
-
-// reviewScore (the average of all above scores)
-
-//timestamps
