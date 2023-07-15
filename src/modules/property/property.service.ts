@@ -4,10 +4,13 @@ import { Request } from 'express';
 import { CreatePropertyDto } from './dto/create.property.dto';
 import { UpdatePropertyDto } from './dto/update.property';
 import { statusDto } from './dto/status.dto';
-import { RatingDto } from './dto/rating.dto';
-import { Property, PropertyStatus } from './entities/property.entity';
+import {
+  Property,
+  PropertyStatus,
+  PropertyType,
+} from './entities/property.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 
 @Injectable()
 export class PropertyService {
@@ -268,5 +271,37 @@ export class PropertyService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async getStatus(statusProperty: PropertyStatus) {
+    const property = await this.propertyRespository.find({
+      where: { status: statusProperty },
+    });
+
+    return property;
+  }
+
+  async getPropertyType(propertyType: PropertyType) {
+    const property = await this.propertyRespository.find({
+      where: { propertyType: propertyType },
+    });
+
+    return property;
+  }
+
+  async getLatestProperty() {
+    const property = await this.propertyRespository.find({
+      order: { createdAt: 'DESC' },
+    });
+
+    return property;
+  }
+
+  async getPropertiesByPriceRange(minPrice: number, maxPrice: number) {
+    const properties = await this.propertyRespository.find({
+      where: { price: Between(minPrice, maxPrice) },
+    });
+
+    return properties;
   }
 }

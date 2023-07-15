@@ -38,7 +38,7 @@ export class Review {
   reviewScore: number | null;
 
   @ManyToOne(() => Property, (property) => property.reviews)
-  property: string;
+  property: Property;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

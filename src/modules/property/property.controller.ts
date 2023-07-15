@@ -9,6 +9,8 @@ import {
   Param,
   ParseUUIDPipe,
   UseGuards,
+  ParseEnumPipe,
+  Query,
 } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { CreatePropertyDto } from './dto/create.property.dto';
@@ -18,8 +20,7 @@ import { Roles } from '../auth/decorators/user.roles';
 import { RolesGaurd } from '../auth/gaurds/roles.gaurd';
 import { UserRole } from '../user/entities/user.entity';
 import { statusDto } from './dto/status.dto';
-import { features } from 'process';
-
+import { PropertyStatus, PropertyType } from './entities/property.entity';
 @Controller('property')
 export class PropertyController {
   constructor(private readonly propertyService: PropertyService) {}
@@ -107,5 +108,35 @@ export class PropertyController {
     @Req() req: Request,
   ) {
     return await this.propertyService.addTags(id, tags, req);
+  }
+
+  @Get('status/:status')
+  async getStatus(
+    @Param('status', new ParseEnumPipe(PropertyStatus)) status: PropertyStatus,
+  ) {
+    return await this.propertyService.getStatus(status);
+  }
+
+  @Get('type/:type')
+  async getPropertyType(
+    @Param('type', new ParseEnumPipe(PropertyType)) type: PropertyType,
+  ) {
+    return await this.propertyService.getPropertyType(type);
+  }
+
+  @Get('lastest')
+  async getLastestProperties() {
+    return await this.propertyService.getLatestProperty();
+  }
+
+  @Get('search')
+  async searchByPriceRange(
+    @Query('minPrice') minPrice: number,
+    @Query('maxPrice') maxPrice: number,
+  ) {
+    return await this.propertyService.getPropertiesByPriceRange(
+      minPrice,
+      maxPrice,
+    );
   }
 }

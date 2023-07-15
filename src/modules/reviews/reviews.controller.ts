@@ -1,34 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
-
+import { RatingDto } from './dto/rating.dto';
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  @Post()
-  create(@Body() createReviewDto: CreateReviewDto) {
-    return this.reviewsService.create(createReviewDto);
+  @Post(':id')
+  create(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() createReviewDto: CreateReviewDto,
+  ) {
+    return this.reviewsService.createReview(createReviewDto, id);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.reviewsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.reviewsService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.reviewsService.findOneReview(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-    return this.reviewsService.update(+id, updateReviewDto);
+  @Patch('rating/:id')
+  async addRating(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() rating: RatingDto,
+  ) {
+    return await this.reviewsService.caculateTotalScore(id, rating);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reviewsService.remove(+id);
+  @Delete('delete/:id')
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.reviewsService.remove(id);
   }
 }
