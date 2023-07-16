@@ -50,16 +50,7 @@ export class Property {
 
   @Column({ type: 'varchar', array: true, nullable: true })
   Feature: string[];
-  /**
- * Tags are supposed to be dynamic and not fixed so intead of this have a features array where the admin
- * can speciy landSize instead
-
-  @Column({ type: 'integer', nullable: true })
-  numberOfBathroom: number | null;
-
-  @Column({ type: 'integer', nullable: true })
-  numberOfBedroom: number | null;
-*/
+  
   @OneToMany(() => Comment, (comment) => comment.propertyId)
   comments: Comment[];
 
@@ -67,7 +58,7 @@ export class Property {
   reviews: Review[];
 
   @ManyToOne(() => User, (user) => user.properties)
-  ADMIN: User; // rename user to admin here so it will be ref as adminId in the db
+  admin: User; // renamed admin to lowercase
 
   @Column({ type: 'varchar', nullable: true })
   salesSuportName: string | null;
@@ -97,33 +88,3 @@ export class Property {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 }
-
-// manytoone rel with admin
-
-// title
-
-// description
-
-// location
-
-// price
-
-// property type (should be house and land)
-
-// upload images and video to cloudinary and save their url
-
-// tags array of strings
-
-// features: array of strings
-
-//property status (listed, unlisted, deleted and sold. unlisted should be the default status)
-
-// one to many rel with reviews
-
-//salesSuportName
-
-//salesSuportNum
-
-//salesSupportAvatar
-
-// timestamps

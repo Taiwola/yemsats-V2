@@ -24,7 +24,7 @@ export class PropertyService {
   async findProperty(id: string) {
     const findProperty = await this.propertyRespository.findOne({
       where: { id: id },
-      relations: ['ADMIN'],
+      relations: ['admin'],
     });
     return findProperty;
   }
@@ -68,7 +68,7 @@ export class PropertyService {
     try {
       const saveProperty = this.propertyRespository.create({
         ...createProperty,
-        ADMIN: user,
+        admin: user,
         salesSuportName: user.name,
         salesSuportNum: user.phone_no,
         salesSupportAvatar: user.profileImg,
@@ -103,7 +103,7 @@ export class PropertyService {
       throw new HttpException('Property not found', HttpStatus.BAD_REQUEST);
     }
 
-    const userId = findProperty.ADMIN.id;
+    const userId = findProperty.admin.id;
 
     const findUser = await this.userService.getUserById(userId);
 
@@ -185,7 +185,7 @@ export class PropertyService {
       );
     }
 
-    if (req.user.id !== property.ADMIN.id) {
+    if (req.user.id !== property.admin.id) {
       throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
@@ -210,7 +210,7 @@ export class PropertyService {
       );
     }
 
-    if (req.user.id !== property.ADMIN.id) {
+    if (req.user.id !== property.admin.id) {
       throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
@@ -229,7 +229,7 @@ export class PropertyService {
       );
     }
 
-    if (req.user.id !== property.ADMIN.id) {
+    if (req.user.id !== property.admin.id) {
       throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
@@ -256,7 +256,7 @@ export class PropertyService {
       );
     }
 
-    if (req.user.id !== property.ADMIN.id) {
+    if (req.user.id !== property.admin.id) {
       throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
     }
 

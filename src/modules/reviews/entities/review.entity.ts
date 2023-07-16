@@ -47,24 +47,3 @@ export class Review {
   updatedAt: Date;
 }
 
-// Entity reviews
-
-// many to one rel with property
-
-// property (the score; min is 1, max is 5)
-
-//valueForMoney (the score; min is 1, max is 5)
-
-//location (the score; min is 1, max is 5)
-
-// support (the score; min is 1, max is 5)
-
-// name (name of reviewer)
-
-// email
-
-// review (the review itself)
-
-// reviewScore (the average of all above scores)
-
-//timestamps
