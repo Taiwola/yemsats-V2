@@ -46,11 +46,11 @@ export class Property {
   price: number | null;
 
   @Column({ type: 'varchar', array: true, nullable: true })
-  Tags: string[];
+  tags: string[];
 
   @Column({ type: 'varchar', array: true, nullable: true })
-  Feature: string[];
-  
+  feature: string[];
+
   @OneToMany(() => Comment, (comment) => comment.propertyId)
   comments: Comment[];
 

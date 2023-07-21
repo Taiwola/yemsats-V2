@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsEnum, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsNumber,
+  IsArray,
+} from 'class-validator';
 import { PropertyType } from '../entities/property.entity';
 
 export class CreatePropertyDto {
@@ -19,4 +25,17 @@ export class CreatePropertyDto {
 
   @IsNumber()
   price: number;
+
+  @IsArray()
+  feature: string[];
+
+  @IsArray()
+  tags: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  salesSuportName: string;
+
+  @IsNumber()
+  salesSuportNum: number;
 }

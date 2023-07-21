@@ -42,6 +42,6 @@ export class User {
   @Column({ type: 'varchar', array: true, nullable: true })
   refreshToken: string[];
 
-  @OneToMany(() => Property, (property) => property.ADMIN)
+  @OneToMany(() => Property, (property) => property.admin)
   properties: Property[];
 }

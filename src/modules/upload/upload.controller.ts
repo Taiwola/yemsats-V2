@@ -39,17 +39,17 @@ export class UploadController {
     return await this.uploadService.uploadProfileImgCloudinary(file, req);
   }
 
-  @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
-  @UseGuards(RolesGaurd)
-  @UseInterceptors(FilesInterceptor('files'))
-  @Post('property/cloud/:id')
-  async handleMultipleUpload(
-    @Param('id', ParseUUIDPipe) id: string,
-    @UploadedFile() files: Express.Multer.File[],
-    @Req() req: Request,
-  ) {
-    return await this.uploadService.uploadPropertyImg(id, files, req);
-  }
+  // @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
+  // @UseGuards(RolesGaurd)
+  // @UseInterceptors(FilesInterceptor('files'))
+  // @Post('property/cloud/:id')
+  // async handleMultipleUpload(
+  //   @Param('id', ParseUUIDPipe) id: string,
+  //   @UploadedFile() files: Express.Multer.File[],
+  //   @Req() req: Request,
+  // ) {
+  //   return await this.uploadService.uploadPropertyImg(id, files, req);
+  // }
 
   @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
   @UseGuards(RolesGaurd)
@@ -85,17 +85,17 @@ export class UploadController {
     return await this.uploadService.uploadProfileImgLocal(filename, req);
   }
 
-  @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
-  @UseGuards(RolesGaurd)
-  @UseInterceptors(FileInterceptor('video'))
-  @Post('video/property/:id')
-  async uploadVideo(
-    @Param('id', ParseUUIDPipe) id: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
-  ) {
-    return await this.uploadService.uploadPropertyVideo(file, id, req);
-  }
+  // @Roles(UserRole.ADMIN, UserRole.CUSTOMER)
+  // @UseGuards(RolesGaurd)
+  // @UseInterceptors(FileInterceptor('video'))
+  // @Post('video/property/:id')
+  // async uploadVideo(
+  //   @Param('id', ParseUUIDPipe) id: string,
+  //   @UploadedFile() file: Express.Multer.File,
+  //   @Req() req: Request,
+  // ) {
+  //   return await this.uploadService.uploadPropertyVideo(file, id, req);
+  // }
 
   @UseInterceptors(FileInterceptor('file'))
   @Post('upload/test2')

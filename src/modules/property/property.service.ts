@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+} from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { Request } from 'express';
 import { CreatePropertyDto } from './dto/create.property.dto';
@@ -11,11 +16,13 @@ import {
 } from './entities/property.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class PropertyService {
   constructor(
     private userService: UserService,
+    private uploadService: UploadService,
     @InjectRepository(Property)
     private propertyRespository: Repository<Property>,
   ) {}
@@ -58,20 +65,43 @@ export class PropertyService {
   }
 
   // CRUD methods
-  async addProperty(createProperty: CreatePropertyDto, req: Request) {
-    const user = await this.userService.getUserById(req.user.id);
-
-    if (!user) {
-      throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
-    }
-
+  async addProperty(
+    createProperty: CreatePropertyDto,
+    req: Request,
+    salesImg: Express.Multer.File,
+    propertyImg: Array<Express.Multer.File>,
+    video: Express.Multer.File,
+  ) {
     try {
+      const user = await this.userService.getUserById(req.user.id);
+
+      if (!user) {
+        throw new HttpException('user does not exist', HttpStatus.BAD_REQUEST);
+      }
+
+      // console.log(video);
+
+      const profileImg = await this.uploadService.upload(salesImg);
+      const profileImgUrl = profileImg.url as string;
+      const videoImg = await this.uploadService.uploadVideo(video);
+      const videoUrl = videoImg.url as string;
+      const images = await this.uploadService.uploadMultipleFiles(propertyImg);
+
+      const imgUrl = images.map((image) => {
+        const url = image.url;
+        return url as string;
+      });
+
+      if (imgUrl.length < 0) {
+        throw new BadRequestException(`Please upload atleast one Image`);
+      }
+
       const saveProperty = this.propertyRespository.create({
         ...createProperty,
         admin: user,
-        salesSuportName: user.name,
-        salesSuportNum: user.phone_no,
-        salesSupportAvatar: user.profileImg,
+        salesSupportAvatar: profileImgUrl,
+        video: videoUrl,
+        images: imgUrl,
       });
 
       const savedProperty = await this.propertyRespository.save(saveProperty);
@@ -96,7 +126,7 @@ export class PropertyService {
   ) {
     const findProperty = await this.propertyRespository.findOne({
       where: { id: id },
-      relations: ['ADMIN'],
+      relations: ['admin'],
     });
 
     if (!findProperty) {
@@ -233,7 +263,7 @@ export class PropertyService {
       throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
-    property.Feature = feature;
+    property.feature = feature;
 
     try {
       return await this.propertyRespository.save(property);
@@ -260,7 +290,7 @@ export class PropertyService {
       throw new HttpException('User is unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
-    property.Tags = tags;
+    property.tags = tags;
 
     try {
       return await this.propertyRespository.save(property);

@@ -5,6 +5,7 @@ import { CloudinaryProvider } from './providers/cloudinary.provider';
 import { UserModule } from '../user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConfig } from '../../config/jwt.config';
+// import { PropertyModule } from '../property/property.module';
 @Module({
   imports: [UserModule, JwtModule.registerAsync(jwtConfig)],
   controllers: [UploadController],

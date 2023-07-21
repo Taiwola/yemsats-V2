@@ -11,7 +11,17 @@ import {
   UseGuards,
   ParseEnumPipe,
   Query,
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { PropertyService } from './property.service';
 import { CreatePropertyDto } from './dto/create.property.dto';
 import { UpdatePropertyDto } from './dto/update.property';
@@ -20,19 +30,74 @@ import { Roles } from '../auth/decorators/user.roles';
 import { RolesGaurd } from '../auth/gaurds/roles.gaurd';
 import { UserRole } from '../user/entities/user.entity';
 import { statusDto } from './dto/status.dto';
-import { PropertyStatus, PropertyType } from './entities/property.entity';
+import {
+  Property,
+  PropertyStatus,
+  PropertyType,
+} from './entities/property.entity';
+import { diskStorage } from 'multer';
+import fs from 'fs';
+import path from 'path';
+
 @Controller('property')
 export class PropertyController {
   constructor(private readonly propertyService: PropertyService) {}
 
+  createMulterStorage = () =>
+    diskStorage({
+      destination: './uploads', // Specify the directory where you want to store the uploaded files
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Array(32)
+          .fill(null)
+          .map(() => {
+            const randomChar = Math.floor(Math.random() * 26) + 97; // Random lowercase character code
+            return String.fromCharCode(randomChar);
+          })
+          .join('');
+
+        const fileExtension = file.originalname.split('.').pop();
+        cb(null, `${uniqueSuffix}.${fileExtension}`);
+      },
+    });
+
   @Roles(UserRole.ADMIN)
   @UseGuards(RolesGaurd)
   @Post('add')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'salesImage', maxCount: 1 },
+      { name: 'propertyImage', maxCount: 6 },
+      { name: 'video', maxCount: 1 },
+    ]),
+  )
   async addProperty(
     @Body() createProperty: CreatePropertyDto,
     @Req() req: Request,
+    @UploadedFiles(
+      new ParseFilePipeBuilder().build({
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    files: {
+      salesImage?: Express.Multer.File[];
+      propertyImage?: Express.Multer.File[];
+      video?: Express.Multer.File[];
+    },
   ) {
-    return await this.propertyService.addProperty(createProperty, req);
+    const video = files.video ? files.video[0] : null;
+    const salesImg = files.salesImage ? files.salesImage[0] : null;
+    const property = files.propertyImage;
+    const propertyImg = property.map((property) => {
+      return property;
+    });
+
+    return await this.propertyService.addProperty(
+      createProperty,
+      req,
+      salesImg,
+      propertyImg,
+      video,
+    );
   }
 
   @Roles(UserRole.ADMIN)

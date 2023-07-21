@@ -12,8 +12,6 @@ import {
 import { UserService } from '../user/user.service';
 import { PropertyService } from '../property/property.service';
 import { Express, Request } from 'express';
-import { rejects } from 'assert';
-import { error } from 'console';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const streamifier = require('streamifier');
 
@@ -22,8 +20,7 @@ type CloudinaryType = UploadApiErrorResponse | UploadApiResponse;
 @Injectable()
 export class UploadService {
   constructor(
-    private userService: UserService,
-    private propertyService: PropertyService,
+    private userService: UserService, // private propertyService: PropertyService,
   ) {}
 
   uploadfile(file: Express.Multer.File): Promise<CloudinaryType> {
@@ -41,7 +38,7 @@ export class UploadService {
 
   uploadMultipleFiles(files: Express.Multer.File[]): Promise<CloudinaryType[]> {
     const uploadPromises = files.map((file) => {
-      return this.uploadfile(file);
+      return this.upload(file);
     });
 
     return Promise.all(uploadPromises);
@@ -64,17 +61,40 @@ export class UploadService {
   //   return Promise.all(uploadPromises);
   // }
 
-  uploadVideo(filePath: string): Promise<any> {
+  upload(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader.upload(
-        filePath,
+        file.path,
         {
-          resource_type: 'video',
+          resource_type: 'image',
         },
         (error, result) => {
           if (error) {
+            console.log('file did not upload');
             reject(error);
           } else {
+            console.log('file uploaded successfully');
+            resolve(result);
+          }
+        },
+      );
+    });
+  }
+
+  uploadVideo(file: Express.Multer.File): Promise<any> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.upload(
+        file.path,
+        {
+          resource_type: 'video',
+          chunk_size: 18335602,
+        },
+        (error, result) => {
+          if (error) {
+            console.log('video did not upload');
+            reject(error);
+          } else {
+            console.log('Video uploaded successfully');
             resolve(result);
           }
         },
@@ -124,57 +144,57 @@ export class UploadService {
     }
   }
 
-  async uploadPropertyImg(
-    id: string,
-    files: Express.Multer.File[],
-    req: Request,
-  ) {
-    const property = await this.propertyService.findProperty(id);
+  // async uploadPropertyImg(
+  //   id: string,
+  //   files: Express.Multer.File[],
+  //   req: Request,
+  // ) {
+  //   const property = await this.propertyService.findProperty(id);
 
-    if (!property) {
-      throw new NotFoundException('Property not found');
-    }
+  //   if (!property) {
+  //     throw new NotFoundException('Property not found');
+  //   }
 
-    if (req.user.id !== property.ADMIN.id) {
-      throw new HttpException('not authorized', HttpStatus.UNAUTHORIZED);
-    }
+  //   if (req.user.id !== property.admin.id) {
+  //     throw new HttpException('not authorized', HttpStatus.UNAUTHORIZED);
+  //   }
 
-    const images = await this.uploadMultipleFiles(files);
+  //   const images = await this.uploadMultipleFiles(files);
 
-    const imgUrl = images.map((image) => {
-      const url = image.url;
-      return url;
-    });
+  //   const imgUrl = images.map((image) => {
+  //     const url = image.url;
+  //     return url;
+  //   });
 
-    if (imgUrl.length > 0) {
-      const imgsUrl = this.propertyService.saveImg(imgUrl, id);
-      return imgsUrl;
-    } else {
-      throw new HttpException('no url', HttpStatus.BAD_REQUEST);
-    }
-  }
+  //   if (imgUrl.length > 0) {
+  //     const imgsUrl = this.propertyService.saveImg(imgUrl, id);
+  //     return imgsUrl;
+  //   } else {
+  //     throw new HttpException('no url', HttpStatus.BAD_REQUEST);
+  //   }
+  // }
 
-  async uploadPropertyVideo(
-    file: Express.Multer.File,
-    id: string,
-    req: Request,
-  ) {
-    const property = await this.propertyService.findProperty(id);
+  // async uploadPropertyVideo(
+  //   file: Express.Multer.File,
+  //   id: string,
+  //   req: Request,
+  // ) {
+  //   const property = await this.propertyService.findProperty(id);
 
-    if (!property) {
-      throw new NotFoundException('Property not found');
-    }
+  //   if (!property) {
+  //     throw new NotFoundException('Property not found');
+  //   }
 
-    if (req.user.id !== property.ADMIN.id) {
-      throw new HttpException('not authorized', HttpStatus.UNAUTHORIZED);
-    }
+  //   if (req.user.id !== property.admin.id) {
+  //     throw new HttpException('not authorized', HttpStatus.UNAUTHORIZED);
+  //   }
 
-    const result = await this.uploadVideo(file.path);
+  //   const result = await this.uploadVideo(file.path);
 
-    const resultUrl = result.url as string;
+  //   const resultUrl = result.url as string;
 
-    const saveVideo = await this.propertyService.saveVideo(resultUrl, id);
+  //   const saveVideo = await this.propertyService.saveVideo(resultUrl, id);
 
-    return saveVideo;
-  }
+  //   return saveVideo;
+  // }
 }
