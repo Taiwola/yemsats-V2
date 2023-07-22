@@ -18,6 +18,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { PropertyModule } from './modules/property/property.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
     PropertyModule,
     CommentModule,
     ReviewsModule,
+    BookingsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -48,6 +50,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    AuthGuard,
   ],
 })
 export class AppModule {}

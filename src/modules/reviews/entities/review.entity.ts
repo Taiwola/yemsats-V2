@@ -46,4 +46,3 @@ export class Review {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 }
-

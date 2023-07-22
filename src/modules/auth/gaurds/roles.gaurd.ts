@@ -28,9 +28,7 @@ export class RolesGaurd implements CanActivate {
         if (!token) {
           throw new Error('Token not found');
         }
-        const payload = (await this.jwtService.verifyAsync(
-          token,
-        )) as JwtPayLoad;
+        const payload = this.jwtService.decode(token) as JwtPayLoad;
 
         const user = await this.userService.getUserById(payload.id);
 

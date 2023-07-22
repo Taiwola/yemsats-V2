@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Property } from '../../property/entities/property.entity';
+import { Booking } from '../../bookings/entities/booking.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -44,4 +45,7 @@ export class User {
 
   @OneToMany(() => Property, (property) => property.admin)
   properties: Property[];
+
+  @OneToMany(() => Booking, (book) => book.user)
+  bookings: Booking[];
 }

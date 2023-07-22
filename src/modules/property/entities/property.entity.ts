@@ -10,6 +10,7 @@ import {
 import { Comment } from '../../comment/entities/comment.entity';
 import { User } from '../../user/entities/user.entity';
 import { Review } from '../../reviews/entities/review.entity';
+import { Booking } from '../../bookings/entities/booking.entity';
 
 export enum PropertyType {
   LAND = 'LAND',
@@ -59,6 +60,9 @@ export class Property {
 
   @ManyToOne(() => User, (user) => user.properties)
   admin: User; // renamed admin to lowercase
+
+  @OneToMany(() => Booking, (booking) => booking.property)
+  bookings: Booking[];
 
   @Column({ type: 'varchar', nullable: true })
   salesSuportName: string | null;
