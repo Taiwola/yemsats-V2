@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
+import { JwtPayLoad } from '../interfaces/auth.interfaces';
 
 @Injectable()
 export class UserInterceptor implements NestInterceptor {
@@ -21,7 +22,7 @@ export class UserInterceptor implements NestInterceptor {
     const token = authorizationHeader?.split(' ')[1];
 
     if (token) {
-      const decoded = await this.jwt.verifyAsync(token);
+      const decoded = this.jwt.decode(token) as JwtPayLoad;
       request.user = decoded;
     }
 

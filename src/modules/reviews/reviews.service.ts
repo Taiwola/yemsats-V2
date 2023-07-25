@@ -5,17 +5,25 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Review } from './entities/review.entity';
 import { RatingDto } from './dto/rating.dto';
+import { Request } from 'express';
+import { UserService } from '../user/user.service';
+import { UserRole } from '../user/entities/user.entity';
 
 @Injectable()
 export class ReviewsService {
   constructor(
     private propertyService: PropertyService,
+    private userService: UserService,
     @InjectRepository(Review) private reviewRepository: Repository<Review>,
   ) {}
 
   // private methods
   private async findReviews(id: string) {
-    const review = await this.reviewRepository.findOne({ where: { id: id } });
+    const review = await this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.property', 'property')
+      .where('review.id = :id', { id: id }) // Replace "id" with the specific review ID you want to fetch
+      .getOne();
     return review;
   }
 
@@ -69,7 +77,10 @@ export class ReviewsService {
   }
 
   async findAll() {
-    const review = await this.reviewRepository.find();
+    const review = await this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.property', 'property')
+      .getMany();
     return review;
   }
 
@@ -79,18 +90,29 @@ export class ReviewsService {
   }
 
   async findTheLatestReview() {
-    const reviews = await this.reviewRepository.find({
-      order: { createdAt: 'DESC' },
-    });
+    const reviews = await this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.property', 'property')
+      .orderBy('review.createdAt', 'DESC')
+      .getMany();
 
     return reviews;
   }
 
-  async remove(id: string) {
+  async remove(id: string, req: Request) {
     const review = await this.findOneReview(id);
-
+    const user = req.user;
     if (!review) {
       throw new HttpException('review does not exist', HttpStatus.BAD_REQUEST);
+    }
+
+    const findUser = this.userService.getUserById(user.id);
+
+    if (
+      user.email !== review.email &&
+      (await findUser).roles !== UserRole.ADMIN
+    ) {
+      throw new HttpException('not authorized', HttpStatus.UNAUTHORIZED);
     }
 
     const removeReview = await this.reviewRepository.delete(id);
@@ -137,7 +159,6 @@ export class ReviewsService {
           locationRating: ratingLocation,
           supportRating: ratingSupport,
           valueRating: ratingValue,
-          updatedAt: Date.now(),
         },
       );
 
@@ -165,14 +186,18 @@ export class ReviewsService {
         ratingSupport,
       ];
       const sum = ratingArray.reduce((acc, rating) => acc + rating, 0);
-      const reviewScore = sum / ratingArray.length + 1;
+      let reviewScore = sum / ratingArray.length + 1;
+
+      if (reviewScore > 5.0) {
+        reviewScore = 5.0;
+      }
 
       const newScore = await this.reviewRepository.update(
         { id: id },
         { reviewScore: reviewScore },
       );
 
-      if (newScore.affected > 1) {
+      if (newScore.affected === 1) {
         const newReview = await this.findReviews(id);
         return newReview;
       }

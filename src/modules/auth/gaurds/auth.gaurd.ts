@@ -32,11 +32,13 @@ export class AuthGuard implements CanActivate {
         return true;
       }
 
-      const payload = await this.validateToken(token);
+      const verify = await this.validateToken(token);
 
-      if (!payload) {
+      if (!verify) {
         throw new Error("Can't decode JWT");
       }
+
+      const payload = this.jwtService.decode(token) as JwtPayLoad;
 
       const user = await this.userService.getUserById(payload.id);
 
@@ -54,7 +56,9 @@ export class AuthGuard implements CanActivate {
     }
   }
 
-  private async validateToken(token: string): Promise<JwtPayLoad> {
-    return this.jwtService.verifyAsync(token) as Promise<JwtPayLoad>;
+  private async validateToken(token: string) {
+    return this.jwtService.verifyAsync(token, {
+      secret: process.env.JWT_SECRET,
+    });
   }
 }

@@ -7,7 +7,7 @@ import { typeormConfigAsync } from './config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailerModule as NestMailerModule } from '@nestjs-modules/mailer';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { jwtConfig } from './config/jwt.config';
 import { mailerConfig } from './config/mailer.config';
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
@@ -51,6 +51,7 @@ import { BookingsModule } from './modules/bookings/bookings.module';
       useClass: AuthGuard,
     },
     AuthGuard,
+    JwtService,
   ],
 })
 export class AppModule {}
