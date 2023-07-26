@@ -122,10 +122,7 @@ export class AuthService {
   }
 
   async forgotPassword(email: ForgotPasswordInterface) {
-    console.log(email.email);
     const userExist = await this.userService.getUser(email.email);
-
-    console.log(userExist);
 
     if (!userExist) {
       throw new HttpException('invalid credentials', HttpStatus.BAD_REQUEST);

@@ -47,14 +47,21 @@ export class BookingsService {
   }
 
   async findAll() {
-    const booking = await this.bookingRepository.find();
+    const booking = await this.bookingRepository
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.property', 'property')
+      .leftJoinAndSelect('booking.user', 'user')
+      .getMany();
     return booking;
   }
 
   async findOne(id: string) {
-    const booking = await this.bookingRepository.findOneOrFail({
-      where: { id: id },
-    });
+    const booking = await this.bookingRepository
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.property', 'property')
+      .leftJoinAndSelect('booking.user', 'user')
+      .where('booking.id = :id', { id })
+      .getOne();
     return booking;
   }
 

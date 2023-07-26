@@ -186,7 +186,7 @@ export class ReviewsService {
         ratingSupport,
       ];
       const sum = ratingArray.reduce((acc, rating) => acc + rating, 0);
-      let reviewScore = sum / ratingArray.length + 1;
+      let reviewScore = sum / ratingArray.length;
 
       if (reviewScore > 5.0) {
         reviewScore = 5.0;
